@@ -8,7 +8,7 @@ from comfy_library.workflow import ComfyWorkflow
 
 # Part 1: 服务器和轮询配置
 COMFYUI_URLS = [
-    "https://u59632-b7b4-361ee7eb.cqa1.seetacloud.com:8443",
+    "http://127.0.0.1:8188",
 ]
 
 def get_next_url(url_list):
