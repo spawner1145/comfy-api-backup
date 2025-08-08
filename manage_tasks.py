@@ -21,7 +21,7 @@ async def main():
     args = parser.parse_args()
 
     async with ComfyUIClient(base_url=args.server, proxy=config.PROXY) as client:
-        print(f"--- 正在连接到服务器: {args.server} ---")
+        print(f"正在连接到服务器: {args.server}")
         if args.command == "view":
             tasks = await client.view_tasks()
             print("\n[🏃‍➡️ Running]")
