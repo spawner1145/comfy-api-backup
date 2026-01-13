@@ -70,7 +70,7 @@ class ComfyUIClient:
         history = await self.get_history(prompt_id)
         if not history: return {"error": "无法获取执行历史记录"}
 
-        print(f"\n✅ 任务完成，开始收集所有节点的输出...")
+        print(f"\n任务完成，开始收集所有节点的输出...")
         
         results = {}
         total_outputs_processed = 0
@@ -90,9 +90,9 @@ class ComfyUIClient:
                 total_outputs_processed +=1
 
         if total_outputs_processed > 0:
-            print(f"\n🎉🎉🎉 工作流成功完成! 共处理 {total_outputs_processed} 个输出项。")
+            print(f"\n工作流成功完成, 共处理 {total_outputs_processed} 个输出项")
         else:
-            print("\n⚠️ 工作流已结束，但没有定义或处理任何输出。")
+            print("\n工作流已结束，但没有定义或处理任何输出")
             
         return results
 
@@ -151,7 +151,7 @@ class ComfyUIClient:
         while attempts < DOWNLOAD_RETRY_ATTEMPTS:
             try:
                 async with websockets.connect(self.ws_address, ping_interval=WS_PING_INTERVAL, ping_timeout=WS_PING_TIMEOUT, open_timeout=WS_OPEN_TIMEOUT) as ws:
-                    print("✅ WebSocket 连接成功建立。")
+                    print("WebSocket 连接成功建立")
                     attempts = 0
 
                     while True:
@@ -163,13 +163,13 @@ class ComfyUIClient:
                                     data = message.get('data', {})
                                     print(f"  - 进度更新: 节点 {data.get('node', 'N/A')} - 步数 {data.get('value', 0)}/{data.get('max', 1)}")
                                 if message.get('type') == 'execution_success' and message.get('data', {}).get('prompt_id') == prompt_id:
-                                    print("✅ 任务执行流程结束。")
+                                    print("任务执行流程结束")
                                     return True
                                 if message.get('type') == 'execution_interrupted':
                                     data = message.get('data', {})
                                     node_id = data.get('node_id', 'N/A')
                                     node_type = data.get('node_type', 'N/A')
-                                    print(f"❌ 任务执行被中断: 节点 {node_id} ({node_type})")
+                                    print(f"任务执行被中断: 节点 {node_id} ({node_type})")
                                     return False
                                 if message.get('type') == 'status':
                                     exec_info = message.get('data', {}).get('status', {}).get('exec_info', {})
@@ -206,7 +206,7 @@ class ComfyUIClient:
                     print(f"   -> 将在 {DOWNLOAD_RETRY_DELAY} 秒后重连...")
                     await asyncio.sleep(DOWNLOAD_RETRY_DELAY)
                 else:
-                    print(f"   -> ❌ 所有连续的重连尝试均失败。")
+                    print(f"   -> 所有连续的重连尝试均失败")
         
         return False
         
@@ -231,12 +231,12 @@ class ComfyUIClient:
                     return absolute_path.replace("\\", "/")
 
             except Exception as e:
-                print(f"   -> ❌ 下载或保存 {filename} 时发生错误 (第 {attempt + 1}/{DOWNLOAD_RETRY_ATTEMPTS} 次尝试): {e}")
+                print(f"   -> 下载或保存 {filename} 时发生错误 (第 {attempt + 1}/{DOWNLOAD_RETRY_ATTEMPTS} 次尝试): {e}")
                 if attempt < DOWNLOAD_RETRY_ATTEMPTS - 1:
                     print(f"   -> 将在 {DOWNLOAD_RETRY_DELAY} 秒后重试...")
                     await asyncio.sleep(DOWNLOAD_RETRY_DELAY)
                 else:
-                    print(f"   -> ❌ 所有重试均失败，放弃下载 {filename}。")
+                    print(f"   -> 所有重试均失败，放弃下载 {filename}")
 
         return None
 
@@ -254,10 +254,10 @@ class ComfyUIClient:
                 response = await self._client.post(url, files=files, data=payload)
                 response.raise_for_status()
             result = response.json()
-            print(f"✅ 文件上传成功. 服务器文件名: {result['name']}")
+            print(f"文件上传成功. 服务器文件名: {result['name']}")
             return result
         except (httpx.RequestError, httpx.HTTPStatusError) as e:
-            print(f"❌ 上传文件时发生网络或HTTP错误: {e}")
+            print(f"上传文件时发生网络或HTTP错误: {e}")
             if isinstance(e, httpx.HTTPStatusError): print(f"   - 服务器响应: {e.response.text}")
             raise
     
@@ -283,18 +283,18 @@ class ComfyUIClient:
             response.raise_for_status()
             prompt_id = response.json().get("prompt_id")
             if prompt_id:
-                print(f"✅ 工作流提交成功. Prompt ID: {prompt_id}")
+                print(f"工作流提交成功. Prompt ID: {prompt_id}")
                 return prompt_id
             else:
-                print(f"❌ 提交工作流后未收到 prompt_id。服务器响应: {response.text}")
+                print(f"提交工作流后未收到 prompt_id。服务器响应: {response.text}")
                 return None
         except (httpx.RequestError, httpx.HTTPStatusError) as e:
-            print(f"❌ 提交工作流时发生网络或HTTP错误: {e}")
+            print(f"提交工作流时发生网络或HTTP错误: {e}")
             if hasattr(e, 'response') and e.response:
                 print(f"   - 服务器响应: {e.response.text}")
             return None
         except json.JSONDecodeError as e:
-            print(f"❌ 解析服务器响应时发生JSON错误。这通常意味着服务器返回了一个错误页面而不是有效的JSON。")
+            print(f"解析服务器响应时发生JSON错误。这通常意味着服务器返回了一个错误页面而不是有效的JSON。")
             print(f"   - 原始响应内容: {response.text}")
             return None
 
@@ -306,7 +306,7 @@ class ComfyUIClient:
             response.raise_for_status()
             return response.json().get(prompt_id, {})
         except Exception as e:
-            print(f"❌ 获取历史记录时发生错误: {e}")
+            print(f"获取历史记录时发生错误: {e}")
             return {}
             
     async def view_tasks(self) -> Dict[str, List[Dict]]:
@@ -344,7 +344,7 @@ class ComfyUIClient:
                 completed_tasks.append({"prompt_id": prompt_id, "outputs_preview": outputs_preview})
             return {"running": running_tasks, "queued": queued_tasks, "completed": completed_tasks}
         except Exception as e:
-            print(f"❌ 获取任务列表时出错: {e}")
+            print(f"获取任务列表时出错: {e}")
             return {"running": [], "queued": [], "completed": []}
 
     async def interrupt_running_task(self) -> bool:
@@ -354,7 +354,7 @@ class ComfyUIClient:
             response.raise_for_status()
             return True
         except Exception as e:
-            print(f"❌ 发送中断请求失败: {e}")
+            print(f"发送中断请求失败: {e}")
             return False
 
     async def delete_queued_tasks(self, prompt_ids: List[str]) -> bool:
@@ -364,5 +364,5 @@ class ComfyUIClient:
             response.raise_for_status()
             return True
         except Exception as e:
-            print(f"❌ 发送删除请求失败: {e}")
+            print(f"发送删除请求失败: {e}")
             return False
